@@ -48,6 +48,22 @@ impl Default for Config {
     }
 }
 
+impl Config {
+    pub fn save(&self) {
+        if let Err(err) = save_json("config.json", self) {
+            match err {
+                Error::CreateFile => {
+                    println!("Create config file error");
+                },
+                Error::WriteFile => {
+                    println!("Save config to file error");
+                },
+                _ => {},
+            }
+        }
+    } 
+}
+
 pub fn save_json<J>(name: &str, json: &J) -> Result<(), Error>
     where
     J: Serialize
