@@ -20,6 +20,34 @@ enum Error {
     StringToJson,
 }
 
+impl Default for Config {
+    fn default() -> Self {
+        match read_json("config.json") {
+            Ok(config) => {
+                let mut config: Self = config;
+
+                config.date = None;
+                if let None = config.temp_type {
+                    config.temp_type = Some(TempType::Celsius);
+                }
+                if let None = config.provider {
+                    config.provider = Some(ProviderType::OpenWeather);
+                }
+
+                config
+            },
+            Err(err) => {
+                Config {
+                    date: None,
+                    address: None,
+                    temp_type: Some(TempType::Celsius),
+                    provider: Some(ProviderType::OpenWeather),
+                }
+            },
+        }
+    }
+}
+
 pub fn save_json<J>(name: &str, json: &J) -> Result<(), Error>
     where
     J: Serialize
