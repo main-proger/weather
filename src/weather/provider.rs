@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 
 use crate::weather::info::WeatherInfo;
-use super::config::Config;
+use super::{config::Config, apis::open_weather::OpenWeatherProvider};
 
 pub trait Provider<I> {
     fn get_info(config: Config) -> Result<I, ()>
@@ -21,6 +21,28 @@ impl ProviderType {
                 Ok(ProviderType::OpenWeather)
             },
             _ => Err(()),
+        }
+    }
+}
+
+impl ProviderType {
+    pub fn view_info(&self, config: Config) {
+        match self {
+            Self::OpenWeather => {
+                if let Ok(info) = OpenWeatherProvider::get_info(config) {
+                    info.print();
+                }
+            },
+        }
+    }
+}
+
+impl Clone for ProviderType {
+    fn clone(&self) -> Self {
+        match self {
+            ProviderType::OpenWeather => {
+                ProviderType::OpenWeather
+            }
         }
     }
 }

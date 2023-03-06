@@ -1,11 +1,9 @@
-extern crate lazy_static;
-
 use std::env;
 
 pub mod utils;
 pub mod weather;
 
-use weather::info::WeatherInfo;
+use weather::{info::WeatherInfo, provider::ProviderType};
 
 use crate::weather::{config::Config, apis::open_weather::OpenWeatherProvider, provider::Provider};
 
@@ -41,12 +39,8 @@ Configuration:
             },
             "get" => {
                 let config = Config::parse_args(args);
-                match OpenWeatherProvider::get_info(config) {
-                    Ok(info) => {
-                        info.print();
-                    },
-                    Err(_) => {},
-                }
+                let provider = config.provider.as_ref().unwrap().clone();
+                provider.view_info(config);
             },
             "providers" => {
                 println!("Weather providers:");
