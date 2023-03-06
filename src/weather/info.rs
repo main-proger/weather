@@ -1,3 +1,7 @@
+use std::fmt::Debug;
+
+use serde::{Serialize, Deserialize};
+
 use crate::utils::temp::{ftoc, ktoc, ftok, ctof, ktof};
 
 pub trait WeaterInfo {
@@ -8,6 +12,7 @@ pub trait WeaterInfo {
     fn print();
 }
 
+#[derive(Serialize, Deserialize, Debug)]
 pub enum TempType {
     Fahrenheit,
     Kelvin,
@@ -111,6 +116,17 @@ impl Temp {
             temp_min: fahrenheit.0,
             temp_max: fahrenheit.1,
             temp_type: TempType::Fahrenheit,
+        }
+    }
+}
+
+impl TempType {
+    pub fn parse(str: &str) -> Result<TempType, ()> {
+        match str {
+            "F" => Ok(TempType::Fahrenheit),
+            "C" => Ok(TempType::Celsius),
+            "K" => Ok(TempType::Kelvin),
+            _ => Err(()),
         }
     }
 }
