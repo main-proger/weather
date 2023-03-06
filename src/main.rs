@@ -5,7 +5,9 @@ use std::env;
 pub mod utils;
 pub mod weather;
 
-use crate::weather::config::Config;
+use weather::info::WeatherInfo;
+
+use crate::weather::{config::Config, apis::open_weather::OpenWeatherProvider, provider::Provider};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -35,6 +37,15 @@ Configuration:
             },
             "save" => {
                 Config::parse_args(args).save();
+            },
+            "get" => {
+                let config = Config::parse_args(args);
+                match OpenWeatherProvider::get_info(config) {
+                    Ok(info) => {
+                        info.print();
+                    },
+                    Err(_) => {},
+                }
             },
             "providers" => {
                 println!("Weather providers:");
