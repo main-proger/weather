@@ -1,14 +1,12 @@
 use serde::{Serialize, Deserialize};
 
-use crate::weather::info::WeaterInfo;
+use crate::weather::info::WeatherInfo;
 use super::config::Config;
 
-trait Provider {
-    fn create<P>(config: Config) -> Self;
-    fn get_type(&self) -> ProviderType;
-    fn get_info<I>(&self, address: &str) -> I
+pub trait Provider<I> {
+    fn get_info(config: Config) -> Result<I, ()>
     where 
-    I: WeaterInfo;
+    I: WeatherInfo;
 }
 
 #[derive(Serialize, Deserialize, Debug)]

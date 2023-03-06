@@ -124,7 +124,7 @@ impl Config {
     } 
 }
 
-pub fn save_json<J>(name: &str, json: &J) -> Result<(), Error>
+fn save_json<J>(name: &str, json: &J) -> Result<(), Error>
     where
     J: Serialize
 {
@@ -147,7 +147,7 @@ pub fn save_json<J>(name: &str, json: &J) -> Result<(), Error>
     Ok(())
 }
 
-pub fn read_json<J>(name: &str) -> Result<J, Error>
+fn read_json<J>(name: &str) -> Result<J, Error>
     where
     J: DeserializeOwned
 {

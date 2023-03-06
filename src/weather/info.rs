@@ -4,7 +4,7 @@ use serde::{Serialize, Deserialize};
 
 use crate::utils::temp::{ftoc, ktoc, ftok, ctof, ktof};
 
-pub trait WeaterInfo {
+pub trait WeatherInfo {
     fn temp() -> Option<Temp>;
     fn humidity() -> Option<f64>;
     fn description() -> Option<String>;
