@@ -20,7 +20,7 @@ Commands:
     help - view usage information
     save - save default configuration
         example:
-            weather save -provider OpenWeather -term_type C
+            weather save -provider OpenWeather -temp C
             weather save -address \"your address\"
     get - view weather
         example:
@@ -30,10 +30,11 @@ Commands:
         example:
             weather providers
 Configuration:
-    provider [OpenWeather] - weather provider
-    date [now, <date>] - weather date
-    address [<address>] - weather address
-    term_type [C, F, K] - temperature type (Fahrenheit, Celsius, Kelvin)");
+    -provider [OpenWeather] - weather provider, default OpenWeather
+    -date [now, <date>] - weather date
+    -address [<address>] - weather address
+    -speed [meter, miles] - wind speed type, default meter
+    -temp [C, F, K] - temperature type (Fahrenheit, Celsius, Kelvin), default Celsius");
             },
             "save" => {
                 Config::parse_args(args).save();

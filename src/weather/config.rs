@@ -1,13 +1,14 @@
 use serde::{Serialize, Deserialize, de::DeserializeOwned};
 use std::{fs::File, io::Write, io::Read};
 
-use super::{info::TempType, provider::ProviderType};
+use super::{info::{TempType, SpeedType}, provider::ProviderType};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
     pub date: Option<String>,
     pub address: Option<String>,
-    pub temp_type: Option<TempType>,
+    pub temp: Option<TempType>,
+    pub speed: Option<SpeedType>,
     pub provider: Option<ProviderType>,
 }
 
@@ -27,8 +28,11 @@ impl Default for Config {
                 let mut config: Self = config;
 
                 config.date = None;
-                if let None = config.temp_type {
-                    config.temp_type = Some(TempType::Celsius);
+                if let None = config.temp {
+                    config.temp = Some(TempType::Celsius);
+                }
+                if let None = config.speed {
+                    config.speed = Some(SpeedType::Meter);
                 }
                 if let None = config.provider {
                     config.provider = Some(ProviderType::OpenWeather);
@@ -40,7 +44,8 @@ impl Default for Config {
                 Config {
                     date: None,
                     address: None,
-                    temp_type: Some(TempType::Celsius),
+                    temp: Some(TempType::Celsius),
+                    speed: Some(SpeedType::Meter),
                     provider: Some(ProviderType::OpenWeather),
                 }
             },
@@ -61,11 +66,19 @@ impl Config {
             "-address" => {
                 self.address = Some(param);
             },
-            "-temp_type" => {
-                self.temp_type = match TempType::parse(&param) {
+            "-temp" => {
+                self.temp = match TempType::parse(&param) {
                     Ok(res) => Some(res),
                     Err(err) => {
-                        return Err(String::from("Argument 'temp_type' error, value must be (F, K, C)"));
+                        return Err(String::from("Argument 'temp' error, value must be (F, K, C)"));
+                    },
+                };
+            },
+            "-speed" => {
+                self.speed = match SpeedType::parse(&param) {
+                    Ok(res) => Some(res),
+                    Err(err) => {
+                        return Err(String::from("Argument 'speed' error, value must be (meter, miles)"));
                     },
                 };
             },
