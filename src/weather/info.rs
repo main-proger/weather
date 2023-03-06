@@ -5,11 +5,11 @@ use serde::{Serialize, Deserialize};
 use crate::utils::temp::{ftoc, ktoc, ftok, ctof, ktof};
 
 pub trait WeatherInfo {
-    fn temp() -> Option<Temp>;
-    fn humidity() -> Option<f64>;
-    fn description() -> Option<String>;
-    fn address() -> Option<String>;
-    fn print();
+    fn temp(&self) -> Option<Temp>;
+    fn humidity(&self) -> Option<f64>;
+    fn description(&self) -> Option<String>;
+    fn address(&self) -> Option<String>;
+    fn print(&self);
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -24,14 +24,6 @@ pub struct Temp {
     pub temp_max: f64,
     pub temp_type: TempType,
 }
-
-pub struct Address {
-    pub country: Option<String>,
-    pub address: String,
-}
-
-pub struct Humidity(f64);
-
 
 
 impl ToString for TempType {
@@ -53,26 +45,10 @@ impl ToString for TempType {
 impl ToString for Temp {
     fn to_string(&self) -> String {
         if self.temp_max == self.temp_min {
-            format!("{} {}", self.temp_max, self.temp_type.to_string())
+            format!("{:5} {}", (self.temp_max * 100f64).round() / 100f64, self.temp_type.to_string())
         } else {
-            format!("[{} : {}] {}", self.temp_min, self.temp_max, self.temp_type.to_string())
+            format!("[{:5} : {:5}] {}", (self.temp_min * 100f64).round() / 100f64, (self.temp_max * 100f64).round() / 100f64, self.temp_type.to_string())
         }
-    }
-}
-
-impl ToString for Address {
-    fn to_string(&self) -> String {
-        if let Some(country) = self.country.as_ref() {
-            format!("{}, {}", country, self.address)
-        } else {
-            format!("{}", self.address)
-        }
-    }
-}
-
-impl ToString for Humidity {
-    fn to_string(&self) -> String {
-        format!("{}%", self.0)
     }
 }
 
@@ -116,6 +92,14 @@ impl Temp {
             temp_min: fahrenheit.0,
             temp_max: fahrenheit.1,
             temp_type: TempType::Fahrenheit,
+        }
+    }
+
+    pub fn to_type(&self, temp_type: &TempType) -> Temp {
+        match temp_type {
+            TempType::Fahrenheit => self.to_fahrenheit(),
+            TempType::Celsius => self.to_celsius(),
+            TempType::Kelvin => self.to_kelvin(),
         }
     }
 }
