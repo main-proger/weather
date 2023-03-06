@@ -1,10 +1,11 @@
-use super::info::TempType;
+use serde::{Serialize, Deserialize};
 
-struct Config {
-    time: Option<i64>,
-    address: bool,
-    temp: bool,
-    temp_type: TempType,
-    humidity: bool,
-    description: bool,
+use super::{info::TempType, provider::ProviderType};
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Config {
+    pub date: Option<String>,
+    pub address: Option<String>,
+    pub temp_type: Option<TempType>,
+    pub provider: Option<ProviderType>,
 }
