@@ -36,6 +36,10 @@ Configuration:
             "save" => {
                 Config::parse_args(args).save();
             },
+            "providers" => {
+                println!("Weather providers:");
+                println!("  OpenWeather");
+            },
             _ => {
                 println!("Unknown comand {}", args[1]);
             },
