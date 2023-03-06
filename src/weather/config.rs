@@ -84,6 +84,31 @@ impl Config {
         Ok(())
     }
 
+    pub fn parse_args(args: Vec<String>) -> Self {
+        let args = args.split_at(2).1;
+    
+        if args.len() % 2 != 0 {
+            println!("args error");
+        }
+        
+        let mut i = 0;
+    
+        let mut config = Config::default();
+    
+        while i < args.len() {
+            let key = args[i].clone();
+            let value = args[i + 1].clone();
+    
+            if let Err(err) = config.set_param(key, value) {
+                println!("{err}");
+            }
+    
+            i += 2;
+        }
+
+        config
+    }
+
     pub fn save(&self) {
         if let Err(err) = save_json("config.json", self) {
             match err {
