@@ -49,6 +49,41 @@ impl Default for Config {
 }
 
 impl Config {
+    pub fn set_param(&mut self, name: String, param: String) -> Result<(), String> {
+        match name.as_str() {
+            "-date" => {
+                self.date = if param == "now" {
+                    None
+                } else {
+                    Some(param)
+                }
+            },
+            "-address" => {
+                self.address = Some(param);
+            },
+            "-temp_type" => {
+                self.temp_type = match TempType::parse(&param) {
+                    Ok(res) => Some(res),
+                    Err(err) => {
+                        return Err(String::from("Argument 'temp_type' error, value must be (F, K, C)"));
+                    },
+                };
+            },
+            "-provider" => {
+                self.provider = match ProviderType::parse(&param) {
+                    Ok(res) => Some(res),
+                    Err(err) => {
+                        return Err(String::from("Argument 'provider' error, value must be (OpenWeather)"));
+                    },
+                };
+            },
+            _ => {
+                return Err(format!("Unknown argument '{name}'"));
+            }
+        }
+        Ok(())
+    }
+
     pub fn save(&self) {
         if let Err(err) = save_json("config.json", self) {
             match err {
