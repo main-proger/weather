@@ -1,3 +1,5 @@
+use chrono::Utc;
+use serde::{Serialize, Deserialize};
 use serde_json::Value;
 
 use crate::weather::{config::Config, info::{Date, Temp, WeatherInfo, Speed, SpeedType, TempType}, provider::Provider};
@@ -12,19 +14,39 @@ enum ApiType {
     Forecast,
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+struct ForecastDayXml {
+    hour: Vec<Value>,
+}
+#[derive(Serialize, Deserialize, Debug)]
+struct ForecastXml {
+    forecastday: Vec<ForecastDayXml>,
+}
+#[derive(Serialize, Deserialize, Debug)]
+struct RootXml {
+    location: Value,
+    current: Option<Value>,
+    forecast: Option<ForecastXml>,
+}
+
 pub struct WeatherApiProvider;
 pub struct XmlWeatherInfo {
     config: Config,
     api_type: ApiType,
-    xml: Value,
+    location: Value,
+    current: Value,
 }
 
 impl ApiType {
     fn from(date: &Date) -> Option<ApiType> {
         if date.day > 10 {
             None
-        }else if date.day == 0 {
-            Some(ApiType::Current)
+        }else if date.hours.is_none() {
+            if date.day == 0 {
+                Some(ApiType::Current)
+            } else {
+                Some(ApiType::Forecast)
+            }
         } else {
             Some(ApiType::Forecast)
         }
@@ -46,7 +68,7 @@ impl ApiType {
                 url
             },
             ApiType::Forecast => {
-                url.replace("{DAYS}", &config.date.as_ref().unwrap().day.to_string())
+                url.replace("{DAYS}", &(config.date.as_ref().unwrap().day + 1).to_string())
             },
         }
     }
@@ -66,22 +88,42 @@ impl Provider<XmlWeatherInfo> for WeatherApiProvider {
                         }
                         match res.text() {
                             Ok(text) => {
-                                match serde_xml_rs::from_str::<Value>(&text) {
+                                match serde_xml_rs::from_str::<RootXml>(&text) {
                                     Ok(xml) => {
-                                        return Some(XmlWeatherInfo {
-                                            api_type,
-                                            config,
-                                            xml,
-                                        });
+                                        match api_type {
+                                            ApiType::Current => {
+                                                return Some(XmlWeatherInfo {
+                                                    api_type,
+                                                    config,
+                                                    location: xml.location,
+                                                    current: xml.current.unwrap(),
+                                                });
+                                            },
+                                            ApiType::Forecast => {
+                                                let date = config.date.as_ref().unwrap();
+                                                let hour = if date.hours.is_none() {
+                                                    let now = (Utc::now().timestamp_millis() as f64 / 1000f64 / 3600f64) as u64;
+                                                    now % 24
+                                                } else {
+                                                    date.hours.unwrap()
+                                                };
+                                                return Some(XmlWeatherInfo {
+                                                    api_type,
+                                                    config,
+                                                    location: xml.location,
+                                                    current: xml.forecast.unwrap().forecastday.last().unwrap().hour[hour as usize].to_owned(),
+                                                });
+                                            },
+                                        }
                                     },
                                     Err(_) => {
                                         println!("Parse data response from api error!")
-                                    }
+                                    },
                                 }
                             },
                             Err(_) => {
                                 println!("Provider response data error!");
-                            }
+                            },
                         }
                     },
                     Err(_) => {
@@ -100,8 +142,7 @@ impl Provider<XmlWeatherInfo> for WeatherApiProvider {
 
 impl WeatherInfo for XmlWeatherInfo {
     fn temp(&self) -> Option<Temp> {
-        let current = self.xml["current"].as_object().unwrap();
-        let temp = current["temp_c"]["$value"].as_str().unwrap().parse::<f64>().unwrap();
+        let temp = self.current["temp_c"]["$value"].as_str().unwrap().parse::<f64>().unwrap();
         Some(Temp {
             temp_min: temp,
             temp_max: temp,
@@ -109,8 +150,7 @@ impl WeatherInfo for XmlWeatherInfo {
         }.to_type(self.config.temp.as_ref().unwrap()))
     }
     fn feels_like(&self) -> Option<Temp> {
-        let current = self.xml["current"].as_object().unwrap();
-        let feelslike_c = current["feelslike_c"]["$value"].as_str().unwrap().parse::<f64>().unwrap();
+        let feelslike_c = self.current["feelslike_c"]["$value"].as_str().unwrap().parse::<f64>().unwrap();
         Some(Temp {
             temp_min: feelslike_c,
             temp_max: feelslike_c,
@@ -119,8 +159,7 @@ impl WeatherInfo for XmlWeatherInfo {
     }
 
     fn wind_speed(&self) -> Option<Speed> {
-        let current = self.xml["current"].as_object().unwrap();
-        let speed_kph = current["wind_kph"]["$value"].as_str().unwrap().parse::<f64>().unwrap();
+        let speed_kph = self.current["wind_kph"]["$value"].as_str().unwrap().parse::<f64>().unwrap();
         let speed_mps = speed_kph * 1000f64 / 3600f64;
         Some(Speed {
             speed: speed_mps,
@@ -128,13 +167,11 @@ impl WeatherInfo for XmlWeatherInfo {
         }.to_type(self.config.speed.as_ref().unwrap()))
     }
     fn wind_deg(&self) -> Option<f64> {
-        let current = self.xml["current"].as_object().unwrap();
-        let wind_degree = current["wind_degree"]["$value"].as_str().unwrap().parse::<f64>().unwrap();
+        let wind_degree = self.current["wind_degree"]["$value"].as_str().unwrap().parse::<f64>().unwrap();
         Some(wind_degree)
     }
     fn wind_gust(&self) -> Option<Speed> {
-        let current = self.xml["current"].as_object().unwrap();
-        let gust_kph = current["gust_kph"]["$value"].as_str().unwrap().parse::<f64>().unwrap();
+        let gust_kph = self.current["gust_kph"]["$value"].as_str().unwrap().parse::<f64>().unwrap();
         let gust_mps = gust_kph * 1000f64 / 3600f64;
         Some(Speed {
             speed: gust_mps,
@@ -143,13 +180,11 @@ impl WeatherInfo for XmlWeatherInfo {
     }
     
     fn humidity(&self) -> Option<f64> {
-        let current = self.xml["current"].as_object().unwrap();
-        let humidity = current["humidity"]["$value"].as_str().unwrap().parse::<f64>().unwrap();
+        let humidity = self.current["humidity"]["$value"].as_str().unwrap().parse::<f64>().unwrap();
         Some(humidity)
     }
     fn pressure(&self) -> Option<f64> {
-        let current = self.xml["current"].as_object().unwrap();
-        let pressure_mb = current["pressure_mb"]["$value"].as_str().unwrap().parse::<f64>().unwrap();
+        let pressure_mb = self.current["pressure_mb"]["$value"].as_str().unwrap().parse::<f64>().unwrap();
         Some(pressure_mb)
     }
 
@@ -157,13 +192,19 @@ impl WeatherInfo for XmlWeatherInfo {
         None
     }
     fn date(&self) -> Option<String> {
-        None
+        match self.api_type {
+            ApiType::Current => {
+                Some(self.location["localtime"]["$value"].as_str().unwrap().to_string())
+            },
+            ApiType::Forecast => {
+                Some(self.current["time"]["$value"].as_str().unwrap().to_string())
+            }
+        }
     }
     fn address(&self) -> Option<String> {
-        let location = self.xml["location"].as_object().unwrap();
-        let name = location["name"]["$value"].as_str().unwrap();
-        let region = location["region"]["$value"].as_str().unwrap();
-        let country = location["country"]["$value"].as_str().unwrap();
+        let name = self.location["name"]["$value"].as_str().unwrap();
+        let region = self.location["region"]["$value"].as_str().unwrap();
+        let country = self.location["country"]["$value"].as_str().unwrap();
         Some(format!("{country}, {region}, {name}"))
     }
     fn print(&self) {

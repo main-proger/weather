@@ -1,3 +1,6 @@
+extern crate serde_json;
+extern crate serde_xml_rs;
+
 use std::env;
 
 pub mod utils;
