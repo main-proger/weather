@@ -1,10 +1,11 @@
 use crate::weather::{provider::{Provider}, config::Config, info::{WeatherInfo, Temp, TempType, Speed, SpeedType, Date}};
 
-static API_KEY: &str = "45cfaf82f367c32a0ae8a1c1f12f7300";
+static API_KEY: &str = "101b778ea4a1c56d89d54aecf4541207";
 static API_CURRENT_URL: &str = "https://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={API_KEY}";
-static API_HOURLY_URL: &str = "https://pro.openweathermap.org/data/2.5/forecast/hourly?q={CITY}&cnt={CNT}&appid={API_KEY}";
-static API_DAILY_URL: &str = "api.openweathermap.org/data/2.5/forecast/daily?q={CITY}&cnt={CNT}&appid={API_KEY}";
+static API_HOURLY_URL: &str = "api.openweathermap.org/data/2.5/forecast?q={CITY}&cnt={CNT}&appid={API_KEY}";
+static API_DAILY_URL: &str = "https://api.openweathermap.org/data/2.5/forecast/daily?q={CITY}&cnt={CNT}&appid={API_KEY}";
 
+#[derive(Debug)]
 enum ApiType {
     Current,
     Hourly,
@@ -68,6 +69,11 @@ impl Provider<JsonWeatherInfo> for OpenWeatherProvider {
                 let url = api_type.get_url(&config);
                 match reqwest::blocking::get(url) {
                     Ok(res) => {
+                        if res.status() != 200 {
+                            println!("Provider response error: Api key or url error!");
+                            println!("Api key is payment!");
+                            return None;
+                        }
                         match res.json::<serde_json::Value>() {
                             Ok(json) => {
                                 return Some(JsonWeatherInfo{
@@ -96,52 +102,166 @@ impl Provider<JsonWeatherInfo> for OpenWeatherProvider {
 
 impl WeatherInfo for JsonWeatherInfo {
     fn temp(&self) -> Option<Temp> {
-        Some(Temp {
-            temp_min: self.json["main"]["temp_min"].as_f64().unwrap(),
-            temp_max: self.json["main"]["temp_max"].as_f64().unwrap(),
-            temp: TempType::Kelvin,
-        }.to_type(self.config.temp.as_ref().unwrap()))
+        match self.api_type {
+            ApiType::Current => {
+                Some(Temp {
+                    temp_min: self.json["main"]["temp_min"].as_f64().unwrap(),
+                    temp_max: self.json["main"]["temp_max"].as_f64().unwrap(),
+                    temp: TempType::Kelvin,
+                }.to_type(self.config.temp.as_ref().unwrap()))
+            },
+            ApiType::Hourly => {
+                None
+            },
+            ApiType::Daily => {
+                let info = self.json["list"][(self.json["cnt"].as_u64().unwrap() - 1u64) as usize].as_object().unwrap();
+                Some(Temp {
+                    temp_min: info["temp"]["min"].as_f64().unwrap(),
+                    temp_max: self.json["temp"]["max"].as_f64().unwrap(),
+                    temp: TempType::Kelvin,
+                }.to_type(self.config.temp.as_ref().unwrap()))
+            },
+        }
     }
     fn feels_like(&self) -> Option<Temp> {
-        let time = self.json["main"]["feels_like"].as_f64().unwrap();
-        Some(Temp {
-            temp_min: time,
-            temp_max: time,
-            temp: TempType::Kelvin,
-        }.to_type(self.config.temp.as_ref().unwrap()))
+        match self.api_type {
+            ApiType::Current => {
+                let time = self.json["main"]["feels_like"].as_f64().unwrap();
+                Some(Temp {
+                    temp_min: time,
+                    temp_max: time,
+                    temp: TempType::Kelvin,
+                }.to_type(self.config.temp.as_ref().unwrap()))
+            },
+            ApiType::Hourly => {
+                None
+            },
+            ApiType::Daily => {
+                let info = self.json["list"][(self.json["cnt"].as_u64().unwrap() - 1u64) as usize].as_object().unwrap();
+                let time = info["feels_like"]["day"].as_f64().unwrap();
+                Some(Temp {
+                    temp_min: time,
+                    temp_max: time,
+                    temp: TempType::Kelvin,
+                }.to_type(self.config.temp.as_ref().unwrap()))
+            },
+        }
     }
 
     fn wind_speed(&self) -> Option<Speed> {
-        Some(Speed {
-            speed: self.json["wind"]["speed"].as_f64().unwrap(),
-            speed_type: SpeedType::Meter,
-        }.to_type(self.config.speed.as_ref().unwrap()))
+        match self.api_type {
+            ApiType::Current => {
+                Some(Speed {
+                    speed: self.json["wind"]["speed"].as_f64().unwrap(),
+                    speed_type: SpeedType::Meter,
+                }.to_type(self.config.speed.as_ref().unwrap()))
+            },
+            ApiType::Hourly => {
+                None
+            },
+            ApiType::Daily => {
+                let info = self.json["list"][(self.json["cnt"].as_u64().unwrap() - 1u64) as usize].as_object().unwrap();
+                Some(Speed {
+                    speed: info["speed"].as_f64().unwrap(),
+                    speed_type: SpeedType::Meter,
+                }.to_type(self.config.speed.as_ref().unwrap()))
+            },
+        }
     }
     fn wind_deg(&self) -> Option<f64> {
-        Some(self.json["wind"]["deg"].as_f64().unwrap())
+        match self.api_type {
+            ApiType::Current => {
+                Some(self.json["wind"]["deg"].as_f64().unwrap())
+            },
+            ApiType::Hourly => {
+                None
+            },
+            ApiType::Daily => {
+                let info = self.json["list"][(self.json["cnt"].as_u64().unwrap() - 1u64) as usize].as_object().unwrap();
+                Some(info["deg"].as_f64().unwrap())
+            },
+        }
     }
     fn wind_gust(&self) -> Option<Speed> {
-        Some(Speed {
-            speed: self.json["wind"]["gust"].as_f64().unwrap(),
-            speed_type: SpeedType::Meter,
-        }.to_type(self.config.speed.as_ref().unwrap()))
+        match self.api_type {
+            ApiType::Current => {
+                Some(Speed {
+                    speed: self.json["wind"]["gust"].as_f64().unwrap(),
+                    speed_type: SpeedType::Meter,
+                }.to_type(self.config.speed.as_ref().unwrap()))
+            },
+            ApiType::Hourly => {
+                None
+            },
+            ApiType::Daily => {
+                let info = self.json["list"][(self.json["cnt"].as_u64().unwrap() - 1u64) as usize].as_object().unwrap();
+                Some(Speed {
+                    speed: info["gust"].as_f64().unwrap(),
+                    speed_type: SpeedType::Meter,
+                }.to_type(self.config.speed.as_ref().unwrap()))
+            },
+        }
     }
     
     fn humidity(&self) -> Option<f64> {
-        Some(self.json["main"]["humidity"].as_f64().unwrap())
+        match self.api_type {
+            ApiType::Current => {
+                Some(self.json["main"]["humidity"].as_f64().unwrap())
+            },
+            ApiType::Hourly => {
+                None
+            },
+            ApiType::Daily => {
+                let info = self.json["list"][(self.json["cnt"].as_u64().unwrap() - 1u64) as usize].as_object().unwrap();
+                Some(info["humidity"].as_f64().unwrap())
+            },
+        }
     }
     fn pressure(&self) -> Option<f64> {
-        Some(self.json["main"]["pressure"].as_f64().unwrap())
+        match self.api_type {
+            ApiType::Current => {
+                Some(self.json["main"]["pressure"].as_f64().unwrap())
+            },
+            ApiType::Hourly => {
+                None
+            },
+            ApiType::Daily => {
+                let info = self.json["list"][(self.json["cnt"].as_u64().unwrap() - 1u64) as usize].as_object().unwrap();
+                Some(info["pressure"].as_f64().unwrap())
+            },
+        }
     }
 
     fn description(&self) -> Option<String> {
-        Some(self.json["weather"][0]["description"].as_str().unwrap().to_string())
+        match self.api_type {
+            ApiType::Current => {
+                Some(self.json["weather"][0]["description"].as_str().unwrap().to_string())
+            },
+            ApiType::Hourly => {
+                None
+            },
+            ApiType::Daily => {
+                println!("{:?}", self.json);
+                let info = self.json["list"][(self.json["cnt"].as_u64().unwrap() - 1u64) as usize].as_object().unwrap();
+                Some(info["weather"][0]["description"].as_str().unwrap().to_string())
+            },
+        }
     }
     fn address(&self) -> Option<String> {
         self.config.address.clone()
     }
     fn print(&self) {
-        println!("weather in {}:", self.address().unwrap());
+        match self.api_type {
+            ApiType::Current => {
+                println!("weather in {}:", self.address().unwrap());
+            },
+            ApiType::Hourly => {
+                println!("weather in {}, on {}:", self.address().unwrap(), );
+            },
+            ApiType::Daily => {
+                println!("weather in {}, on day {}:", self.address().unwrap(), self.config.date.as_ref().unwrap().day);
+            },
+        }
         println!("description: {}", self.description().unwrap());
         println!("main:");
         println!("  temp: {}", self.temp().unwrap().to_string());
