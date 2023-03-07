@@ -1,3 +1,5 @@
+use serde_json::Value;
+
 use crate::weather::{config::Config, info::{Date, Temp, WeatherInfo, Speed}, provider::Provider};
 
 static API_KEY: &str = "9c7e143cdf584874a59173938230703";
@@ -14,7 +16,7 @@ pub struct WeatherApiProvider;
 pub struct XmlWeatherInfo {
     config: Config,
     api_type: ApiType,
-    xml: String,
+    xml: Value,
 }
 
 impl ApiType {
@@ -62,13 +64,20 @@ impl Provider<XmlWeatherInfo> for WeatherApiProvider {
                             println!("Provider response error: Api key or url error!");
                             return None;
                         }
-                        match res.json::<serde_json::Value>() {
-                            Ok(json) => {
-                                return Some(XmlWeatherInfo {
-                                    api_type,
-                                    config,
-                                    xml: "".to_string()
-                                });
+                        match res.text() {
+                            Ok(text) => {
+                                match serde_xml_rs::from_str::<Value>(&text) {
+                                    Ok(xml) => {
+                                        return Some(XmlWeatherInfo {
+                                            api_type,
+                                            config,
+                                            xml,
+                                        });
+                                    },
+                                    Err(_) => {
+                                        println!("Parse data response from api error!")
+                                    }
+                                }
                             },
                             Err(_) => {
                                 println!("Provider response data error!");
