@@ -3,8 +3,7 @@ use std::env;
 pub mod utils;
 pub mod weather;
 
-use weather::{provider::get_weather_info, info::WeatherInfo};
-
+use weather::provider::view_weather_info;
 use crate::weather::config::Config;
 
 fn main() {
@@ -43,18 +42,12 @@ Configuration:
             },
             "get" => {
                 let config = Config::parse_args(args);
-                match get_weather_info(config) {
-                    Some(info) => {
-                        info.print();
-                    },
-                    None => {
-                        println!("Get weather info error");
-                    }
-                }
+                view_weather_info(config);
             },
             "providers" => {
                 println!("Weather providers:");
                 println!("  OpenWeather");
+                println!("  WeatherApi");
             },
             _ => {
                 println!("Unknown comand {}", args[1]);

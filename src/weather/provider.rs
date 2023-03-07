@@ -29,18 +29,24 @@ impl ProviderType {
     }
 }
 
-pub fn get_weather_info(config: Config) -> Option<impl WeatherInfo> {
+pub fn view_weather_info(config: Config) {
     if config.address.is_none() {
         println!("Weather address must be present!");
-        None
     } else {
         match config.provider.as_ref().unwrap() {
             ProviderType::OpenWeather => {
-                OpenWeatherProvider::get_info(config)
+                if let Some(info) = OpenWeatherProvider::get_info(config) {
+                    info.print();
+                    return;
+                }
             },
             ProviderType::WeatherApi => {
-                WeatherApiProvider::get_info(config)
+                if let Some(info) = WeatherApiProvider::get_info(config) {
+                    info.print();
+                    return;
+                }
             },
         }
+        println!("Get weather info error");
     }
 }
