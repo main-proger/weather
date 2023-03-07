@@ -121,8 +121,8 @@ impl JsonWeatherInfo {
             date.hours.unwrap() as i64
         };
 
-        let mut min_info = self.json["list"][0].as_object().unwrap();
-        let mut min_dif = min_info["dt"].as_i64().unwrap() / 3600;
+        let mut get_info = self.json["list"][0].as_object().unwrap();
+        let mut min_dif = get_info["dt"].as_i64().unwrap() / 3600;
 
         for i in 0..cnt {
             let info = self.json["list"][i].as_object().unwrap();
@@ -130,11 +130,11 @@ impl JsonWeatherInfo {
             let dif = (ctime - wtime).abs();
             if dif < min_dif {
                 min_dif = dif;
-                min_info = info;
+                get_info = info;
             }
         }
 
-        min_info
+        get_info
     }
 
     fn last_info(&self) -> &Map<String, Value> {
@@ -328,6 +328,7 @@ impl WeatherInfo for JsonWeatherInfo {
     fn address(&self) -> Option<String> {
         self.config.address.clone()
     }
+
     fn print(&self) {
         match self.api_type {
             ApiType::Current => {

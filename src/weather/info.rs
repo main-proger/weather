@@ -18,6 +18,7 @@ pub trait WeatherInfo {
     fn description(&self) -> Option<String>;
     fn date(&self) -> Option<String>;
     fn address(&self) -> Option<String>;
+
     fn print(&self);
 }
 
@@ -85,7 +86,7 @@ impl ToString for SpeedType {
                 String::from("meter/sec")
             },
             SpeedType::Miles => {
-                String::from("miles/sec")
+                String::from("miles/hour")
             },
         }
     }
@@ -175,7 +176,7 @@ impl Speed {
         match self.speed_type {
             SpeedType::Meter => self,
             SpeedType::Miles => Self {
-                speed: self.speed * 1609.34f64,
+                speed: self.speed / 3600f64 * 1609.34f64 ,
                 speed_type: SpeedType::Meter,
             },
         }
@@ -184,7 +185,7 @@ impl Speed {
         match self.speed_type {
             SpeedType::Miles => self,
             SpeedType::Meter => Self {
-                speed: self.speed / 1609.34f64,
+                speed: self.speed * 3600f64 / 1609.34f64,
                 speed_type: SpeedType::Miles,
             },
         }

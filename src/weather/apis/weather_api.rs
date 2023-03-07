@@ -39,7 +39,7 @@ pub struct XmlWeatherInfo {
 
 impl ApiType {
     fn from(date: &Date) -> Option<ApiType> {
-        if date.day > 10 {
+        if date.day > 9 {
             None
         }else if date.hours.is_none() {
             if date.day == 0 {
@@ -207,6 +207,7 @@ impl WeatherInfo for XmlWeatherInfo {
         let country = self.location["country"]["$value"].as_str().unwrap();
         Some(format!("{country}, {region}, {name}"))
     }
+
     fn print(&self) {
         match self.api_type {
             ApiType::Current => {
@@ -219,7 +220,6 @@ impl WeatherInfo for XmlWeatherInfo {
         println!("main:");
         println!("  temp: {}", self.temp().unwrap().to_string());
         println!("  feels like temp: {}", self.feels_like().unwrap().to_string());
-        println!("  wind speed: {}", self.wind_speed().unwrap().to_string());
         println!("  humidity: {}%", self.humidity().unwrap());
         println!("  pressure: {}p", self.pressure().unwrap());
         println!("wind:");
