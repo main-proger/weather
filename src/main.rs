@@ -25,14 +25,14 @@ Commands:
     get - view weather
         example:
             weather get -address -date now
-            weather get -address -day 0 -hour 17
-            weather get -address -date \"1, 17\"
+            weather get -day 0 -hour 17
+            weather get -date \"1, 17\"
             weather get -provider OpenWeather -date \"weather date\"
     providers - view all providers
         example:
             weather providers
 Configuration:
-    -provider [OpenWeather] - weather provider, default OpenWeather
+    -provider [OpenWeather, WeatherApi] - weather provider, default OpenWeather
     -date [now, \"<day>, <hour>\"] - weather date, <day> - day for weather from current day, <hour> - hour of day, default now
     -day <day> - weather day, <day> - day for weather from current day, default now
     -hour <hour> - weather date, <hour> - hour of day, default now
