@@ -25,24 +25,10 @@ impl ProviderType {
     }
 }
 
-impl ProviderType {
-    pub fn view_info(&self, config: Config) {
-        match self {
-            Self::OpenWeather => {
-                if let Some(info) = OpenWeatherProvider::get_info(config) {
-                    info.print();
-                }
-            },
-        }
-    }
-}
-
-impl Clone for ProviderType {
-    fn clone(&self) -> Self {
-        match self {
-            ProviderType::OpenWeather => {
-                ProviderType::OpenWeather
-            }
-        }
+pub fn get_weather_info(config: Config) -> Option<impl WeatherInfo> {
+    match config.provider.as_ref().unwrap() {
+        ProviderType::OpenWeather => {
+            OpenWeatherProvider::get_info(config)
+        },
     }
 }
