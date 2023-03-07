@@ -26,10 +26,12 @@ impl ApiType {
         }else if date.hours.is_none() {
             if date.day == 0 {
                 Some(ApiType::Current)
+            } else if date.day < 5 {
+                Some(ApiType::Hourly)
             } else {
-                Some(ApiType::Daily)
+                Some(ApiType::Hourly)
             }
-        } else if date.day <= 4 {
+        } else if date.day <= 5 {
             Some(ApiType::Hourly)
         } else {
             Some(ApiType::Daily)
@@ -256,7 +258,7 @@ impl WeatherInfo for JsonWeatherInfo {
                 println!("weather in {}:", self.address().unwrap());
             },
             ApiType::Hourly => {
-                println!("weather in {}, on {}:", self.address().unwrap(), );
+                println!("weather in {}, on {}:", self.address().unwrap(), "");
             },
             ApiType::Daily => {
                 println!("weather in {}, on day {}:", self.address().unwrap(), self.config.date.as_ref().unwrap().day);
