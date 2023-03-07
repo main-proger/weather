@@ -28,19 +28,19 @@ impl Default for Config {
                 let mut config: Self = config;
 
                 config.date = None;
-                if let None = config.temp {
+                if config.temp.is_none() {
                     config.temp = Some(TempType::Celsius);
                 }
-                if let None = config.speed {
+                if config.speed.is_none() {
                     config.speed = Some(SpeedType::Meter);
                 }
-                if let None = config.provider {
+                if config.provider.is_none() {
                     config.provider = Some(ProviderType::OpenWeather);
                 }
 
                 config
             },
-            Err(err) => {
+            Err(_) => {
                 Config {
                     date: None,
                     address: None,
@@ -68,24 +68,24 @@ impl Config {
             },
             "-temp" => {
                 self.temp = match TempType::parse(&param) {
-                    Ok(res) => Some(res),
-                    Err(err) => {
+                    Some(res) => Some(res),
+                    None => {
                         return Err(String::from("Argument 'temp' error, value must be (F, K, C)"));
                     },
                 };
             },
             "-speed" => {
                 self.speed = match SpeedType::parse(&param) {
-                    Ok(res) => Some(res),
-                    Err(err) => {
+                    Some(res) => Some(res),
+                    None => {
                         return Err(String::from("Argument 'speed' error, value must be (meter, miles)"));
                     },
                 };
             },
             "-provider" => {
                 self.provider = match ProviderType::parse(&param) {
-                    Ok(res) => Some(res),
-                    Err(err) => {
+                    Some(res) => Some(res),
+                    None => {
                         return Err(String::from("Argument 'provider' error, value must be (OpenWeather)"));
                     },
                 };
@@ -143,18 +143,18 @@ fn save_json<J>(name: &str, json: &J) -> Result<(), Error>
 {
     let data = match serde_json::to_string(json) {
         Ok(res) => res,
-        Err(err) => {
+        Err(_) => {
             return Err(Error::JsonToString);
         }
     };
 
     let mut file = match File::create(name) {
         Ok(file) => file,
-        Err(err) => {
+        Err(_) => {
             return Err(Error::CreateFile);
         }
     };
-    if let Err(err) = file.write_all(data.as_bytes()) {
+    if file.write_all(data.as_bytes()).is_err() {
         return Err(Error::WriteFile);
     }
     Ok(())
@@ -168,20 +168,18 @@ fn read_json<J>(name: &str) -> Result<J, Error>
 
     let mut file = match File::open(name) {
         Ok(file) => file,
-        Err(err) => {
+        Err(_) => {
             return Err(Error::OpenFile);
         },
     };
-    if let Err(err) = file.read_to_end(&mut data) {
+    if file.read_to_end(&mut data).is_err() {
         return Err(Error::ReadFile);
     }
 
     let data = data.as_slice();
 
     match serde_json::from_slice(data) {
-        Err(err) => {
-            return Err(Error::StringToJson);
-        },
+        Err(_) => Err(Error::StringToJson),
         Ok(res) => Ok(res),
     }
 }

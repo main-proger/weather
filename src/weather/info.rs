@@ -143,12 +143,12 @@ impl Temp {
 }
 
 impl TempType {
-    pub fn parse(str: &str) -> Result<TempType, ()> {
+    pub fn parse(str: &str) -> Option<TempType> {
         match str {
-            "F" => Ok(TempType::Fahrenheit),
-            "C" => Ok(TempType::Celsius),
-            "K" => Ok(TempType::Kelvin),
-            _ => Err(()),
+            "F" => Some(TempType::Fahrenheit),
+            "C" => Some(TempType::Celsius),
+            "K" => Some(TempType::Kelvin),
+            _ => None,
         }
     }
 }
@@ -181,11 +181,11 @@ impl Speed {
 }
 
 impl SpeedType {
-    pub fn parse(str: &str) -> Result<Self, ()> {
+    pub fn parse(str: &str) -> Option<Self> {
         match str {
-            "meter" => Ok(SpeedType::Meter),
-            "miles" => Ok(SpeedType::Miles),
-            _ => Err(()),
+            "meter" => Some(SpeedType::Meter),
+            "miles" => Some(SpeedType::Miles),
+            _ => None,
         }
     }
 }

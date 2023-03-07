@@ -4,7 +4,7 @@ use crate::weather::info::WeatherInfo;
 use super::{config::Config, apis::open_weather::OpenWeatherProvider};
 
 pub trait Provider<I> {
-    fn get_info(config: Config) -> Result<I, ()>
+    fn get_info(config: Config) -> Option<I>
     where 
     I: WeatherInfo;
 }
@@ -15,12 +15,12 @@ pub enum ProviderType {
 }
 
 impl ProviderType {
-    pub fn parse(str: &str) -> Result<ProviderType, ()> {
+    pub fn parse(str: &str) -> Option<ProviderType> {
         match str {
             "OpenWeather" => {
-                Ok(ProviderType::OpenWeather)
+                Some(ProviderType::OpenWeather)
             },
-            _ => Err(()),
+            _ => None
         }
     }
 }
@@ -29,7 +29,7 @@ impl ProviderType {
     pub fn view_info(&self, config: Config) {
         match self {
             Self::OpenWeather => {
-                if let Ok(info) = OpenWeatherProvider::get_info(config) {
+                if let Some(info) = OpenWeatherProvider::get_info(config) {
                     info.print();
                 }
             },

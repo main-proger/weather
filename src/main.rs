@@ -3,9 +3,7 @@ use std::env;
 pub mod utils;
 pub mod weather;
 
-use weather::{info::WeatherInfo, provider::ProviderType};
-
-use crate::weather::{config::Config, apis::open_weather::OpenWeatherProvider, provider::Provider};
+use crate::weather::config::Config;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
