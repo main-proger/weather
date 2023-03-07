@@ -1,6 +1,4 @@
-use std::time::Duration;
-
-use chrono::{Utc, Datelike};
+use chrono::Utc;
 use serde_json::{Value, Map};
 
 use crate::weather::{provider::{Provider}, config::Config, info::{WeatherInfo, Temp, TempType, Speed, SpeedType, Date}};

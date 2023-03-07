@@ -1,7 +1,7 @@
 use serde::{Serialize, Deserialize};
 
 use crate::weather::info::WeatherInfo;
-use super::{config::Config, apis::open_weather::OpenWeatherProvider};
+use super::{config::Config, apis::{open_weather::OpenWeatherProvider, weather_api::WeatherApiProvider}};
 
 pub trait Provider<I> {
     fn get_info(config: Config) -> Option<I>
@@ -11,7 +11,8 @@ pub trait Provider<I> {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub enum ProviderType {
-    OpenWeather
+    OpenWeather,
+    WeatherApi,
 }
 
 impl ProviderType {
@@ -19,6 +20,9 @@ impl ProviderType {
         match str {
             "OpenWeather" => {
                 Some(ProviderType::OpenWeather)
+            },
+            "WeatherApi" => {
+                Some(ProviderType::WeatherApi)
             },
             _ => None
         }
@@ -33,6 +37,9 @@ pub fn get_weather_info(config: Config) -> Option<impl WeatherInfo> {
         match config.provider.as_ref().unwrap() {
             ProviderType::OpenWeather => {
                 OpenWeatherProvider::get_info(config)
+            },
+            ProviderType::WeatherApi => {
+                WeatherApiProvider::get_info(config)
             },
         }
     }
