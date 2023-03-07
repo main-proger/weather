@@ -149,7 +149,7 @@ impl WeatherInfo for JsonWeatherInfo {
                 Some(Temp {
                     temp_min: self.json["main"]["temp_min"].as_f64().unwrap(),
                     temp_max: self.json["main"]["temp_max"].as_f64().unwrap(),
-                    temp: TempType::Kelvin,
+                    temp_type: TempType::Kelvin,
                 }.to_type(self.config.temp.as_ref().unwrap()))
             },
             ApiType::Hourly => {
@@ -157,7 +157,7 @@ impl WeatherInfo for JsonWeatherInfo {
                 Some(Temp {
                     temp_min: info["main"]["temp_min"].as_f64().unwrap(),
                     temp_max: info["main"]["temp_max"].as_f64().unwrap(),
-                    temp: TempType::Kelvin,
+                    temp_type: TempType::Kelvin,
                 }.to_type(self.config.temp.as_ref().unwrap()))
             },
             ApiType::Daily => {
@@ -165,7 +165,7 @@ impl WeatherInfo for JsonWeatherInfo {
                 Some(Temp {
                     temp_min: info["temp"]["min"].as_f64().unwrap(),
                     temp_max: self.json["temp"]["max"].as_f64().unwrap(),
-                    temp: TempType::Kelvin,
+                    temp_type: TempType::Kelvin,
                 }.to_type(self.config.temp.as_ref().unwrap()))
             },
         }
@@ -177,7 +177,7 @@ impl WeatherInfo for JsonWeatherInfo {
                 Some(Temp {
                     temp_min: time,
                     temp_max: time,
-                    temp: TempType::Kelvin,
+                    temp_type: TempType::Kelvin,
                 }.to_type(self.config.temp.as_ref().unwrap()))
             },
             ApiType::Hourly => {
@@ -186,7 +186,7 @@ impl WeatherInfo for JsonWeatherInfo {
                 Some(Temp {
                     temp_min: time,
                     temp_max: time,
-                    temp: TempType::Kelvin,
+                    temp_type: TempType::Kelvin,
                 }.to_type(self.config.temp.as_ref().unwrap()))
             },
             ApiType::Daily => {
@@ -195,7 +195,7 @@ impl WeatherInfo for JsonWeatherInfo {
                 Some(Temp {
                     temp_min: time,
                     temp_max: time,
-                    temp: TempType::Kelvin,
+                    temp_type: TempType::Kelvin,
                 }.to_type(self.config.temp.as_ref().unwrap()))
             },
         }
@@ -348,7 +348,7 @@ impl WeatherInfo for JsonWeatherInfo {
         println!("  pressure: {}p", self.pressure().unwrap());
         println!("wind:");
         println!("  speed: {}", self.wind_speed().unwrap().to_string());
-        println!("  deg: {}", self.wind_deg().unwrap());
+        println!("  degree: {}°", self.wind_deg().unwrap());
         println!("  gust: {}", self.wind_gust().unwrap().to_string());
     }
 }
