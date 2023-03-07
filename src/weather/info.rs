@@ -16,6 +16,7 @@ pub trait WeatherInfo {
     fn wind_gust(&self) -> Option<Speed>;
 
     fn description(&self) -> Option<String>;
+    fn date(&self) -> Option<String>;
     fn address(&self) -> Option<String>;
     fn print(&self);
 }
