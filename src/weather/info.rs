@@ -21,6 +21,12 @@ pub trait WeatherInfo {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
+pub struct Date {
+    pub day: u64,
+    pub hours: Option<u64>,
+}
+
+#[derive(Serialize, Deserialize, Debug)]
 pub enum TempType {
     Fahrenheit,
     Kelvin,
@@ -87,6 +93,16 @@ impl ToString for SpeedType {
 impl ToString for Speed {
     fn to_string(&self) -> String {
         format!("{} {}", (self.speed * 100000f64).round() / 100000f64, self.speed_type.to_string())
+    }
+}
+
+impl ToString for Date {
+    fn to_string(&self) -> String {
+        if self.hours.is_none() {
+            format!("{} day", self.day)
+        } else {
+            format!("{} day, {} hour", self.day, self.hours.unwrap())
+        }
     }
 }
 
@@ -186,6 +202,33 @@ impl SpeedType {
             "meter" => Some(SpeedType::Meter),
             "miles" => Some(SpeedType::Miles),
             _ => None,
+        }
+    }
+}
+
+impl Date {
+    pub fn parse(str: &str) -> Option<Self> {
+        let str = str.replace(' ', "");
+        let arr = str.split(',').collect::<Vec<&str>>();
+        if arr.len() != 2 {
+            None
+        } else {
+            let day = match arr[0].parse::<u64>() {
+                Ok(res) => res,
+                Err(_) => {
+                    return None;
+                },
+            };
+            let hours = match arr[1].parse::<u64>() {
+                Ok(res) => res,
+                Err(_) => {
+                    return None;
+                },
+            };
+            Some(Self {
+                day,
+                hours: Some(hours),
+            })
         }
     }
 }

@@ -1,11 +1,11 @@
 use serde::{Serialize, Deserialize, de::DeserializeOwned};
 use std::{fs::File, io::Write, io::Read};
 
-use super::{info::{TempType, SpeedType}, provider::ProviderType};
+use super::{info::{TempType, SpeedType, Date}, provider::ProviderType};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
-    pub date: Option<String>,
+    pub date: Option<Date>,
     pub address: Option<String>,
     pub temp: Option<TempType>,
     pub speed: Option<SpeedType>,
@@ -27,7 +27,12 @@ impl Default for Config {
             Ok(config) => {
                 let mut config: Self = config;
 
-                config.date = None;
+                if config.date.is_none() {
+                    config.date = Some(Date {
+                        day: 0,
+                        hours: None,
+                    });
+                }
                 if config.temp.is_none() {
                     config.temp = Some(TempType::Celsius);
                 }
@@ -42,7 +47,10 @@ impl Default for Config {
             },
             Err(_) => {
                 Config {
-                    date: None,
+                    date: Some(Date {
+                        day: 0,
+                        hours: None,
+                    }),
                     address: None,
                     temp: Some(TempType::Celsius),
                     speed: Some(SpeedType::Meter),
@@ -58,10 +66,50 @@ impl Config {
         match name.as_str() {
             "-date" => {
                 self.date = if param == "now" {
+                    Some(Date {
+                        day: 0,
+                        hours: None,
+                    })
+                } else {
+                    match Date::parse(&param) {
+                        Some(res) => Some(res),
+                        None => {
+                            return Err(String::from("Argument 'date' error, value format must be \"DAY, HOUR\""));
+                        }
+                    }
+                }
+            },
+            "-day" => {
+                let day = if param == "now" {
+                    0
+                } else {
+                    match param.parse::<u64>() {
+                        Ok(res) => res,
+                        Err(_) => {
+                            return Err(String::from("Argument 'day' error, value must be unsigned number or 'now'"));
+                        }
+                    }
+                };
+                self.date = Some(Date {
+                    day,
+                    hours: self.date.as_ref().unwrap().hours,
+                });
+            },
+            "-hour" => {
+                let hour = if param == "now" {
                     None
                 } else {
-                    Some(param)
-                }
+                    match param.parse::<u64>() {
+                        Ok(res) => Some(res),
+                        Err(_) => {
+                            return Err(String::from("Argument 'hour' error, value must be unsigned number or 'now'"));
+                        }
+                    }
+                };
+                self.date = Some(Date {
+                    day: self.date.as_ref().unwrap().day,
+                    hours: hour,
+                });
             },
             "-address" => {
                 self.address = Some(param);
