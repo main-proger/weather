@@ -26,9 +26,14 @@ impl ProviderType {
 }
 
 pub fn get_weather_info(config: Config) -> Option<impl WeatherInfo> {
-    match config.provider.as_ref().unwrap() {
-        ProviderType::OpenWeather => {
-            OpenWeatherProvider::get_info(config)
-        },
+    if config.address.is_none() {
+        println!("Weather address must be present!");
+        None
+    } else {
+        match config.provider.as_ref().unwrap() {
+            ProviderType::OpenWeather => {
+                OpenWeatherProvider::get_info(config)
+            },
+        }
     }
 }

@@ -225,6 +225,9 @@ impl Date {
                     return None;
                 },
             };
+            if hours >= 24 {
+                return None;
+            }
             Some(Self {
                 day,
                 hours: Some(hours),

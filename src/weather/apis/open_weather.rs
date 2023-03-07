@@ -1,41 +1,95 @@
-use crate::weather::{provider::{Provider}, config::Config, info::{WeatherInfo, Temp, TempType, Speed, SpeedType}};
+use crate::weather::{provider::{Provider}, config::Config, info::{WeatherInfo, Temp, TempType, Speed, SpeedType, Date}};
 
 static API_KEY: &str = "45cfaf82f367c32a0ae8a1c1f12f7300";
-static API_URL: &str = "https://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={API_KEY}";
+static API_CURRENT_URL: &str = "https://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={API_KEY}";
+static API_HOURLY_URL: &str = "https://pro.openweathermap.org/data/2.5/forecast/hourly?q={CITY}&cnt={CNT}&appid={API_KEY}";
+static API_DAILY_URL: &str = "api.openweathermap.org/data/2.5/forecast/daily?q={CITY}&cnt={CNT}&appid={API_KEY}";
+
+enum ApiType {
+    Current,
+    Hourly,
+    Daily,
+}
 
 pub struct OpenWeatherProvider;
-pub struct JsonWeatherInfo{
+pub struct JsonWeatherInfo {
     config: Config,
+    api_type: ApiType,
     json: serde_json::Value,
+}
+
+impl ApiType {
+    fn from(date: &Date) -> Option<ApiType> {
+        if date.day > 15 {
+            None
+        }else if date.hours.is_none() {
+            if date.day == 0 {
+                Some(ApiType::Current)
+            } else {
+                Some(ApiType::Daily)
+            }
+        } else if date.day <= 4 {
+            Some(ApiType::Hourly)
+        } else {
+            Some(ApiType::Daily)
+        }
+    }
+
+    fn api_url(&self) -> &str {
+        match self {
+            ApiType::Current => API_CURRENT_URL,
+            ApiType::Hourly => API_HOURLY_URL,
+            ApiType::Daily => API_DAILY_URL,
+        }
+    }
+
+    fn get_url(&self, config: &Config) -> String {
+        let url = self.api_url()
+            .replace("{API_KEY}", API_KEY)
+            .replace("{CITY}", config.address.as_ref().unwrap());
+        match self {
+            ApiType::Current => {
+                url
+            },
+            ApiType::Daily => {
+                url.replace("{CNT}", &(config.date.as_ref().unwrap().day + 1).to_string())
+            },
+            ApiType::Hourly => {
+                url.replace("{CNT}", &(config.date.as_ref().unwrap().day + 1).to_string())
+            },
+        }
+    }
 }
 
 impl Provider<JsonWeatherInfo> for OpenWeatherProvider {
     fn get_info(config: Config) -> Option<JsonWeatherInfo> {
-        if let Some(address) = config.address.as_ref() {
-            let url = API_URL
-                .replace("{API_KEY}", API_KEY)
-                .replace("{CITY}", address);
-            match reqwest::blocking::get(url) {
-                Ok(res) => {
-                    match res.json::<serde_json::Value>() {
-                        Ok(json) => {
-                            return Some(JsonWeatherInfo{
-                                config,
-                                json
-                            });
-                        },
-                        Err(_) => {
-                            println!("Provider response data error!");
+        match ApiType::from(config.date.as_ref().unwrap()) {
+            Some(api_type) => {
+                let url = api_type.get_url(&config);
+                match reqwest::blocking::get(url) {
+                    Ok(res) => {
+                        match res.json::<serde_json::Value>() {
+                            Ok(json) => {
+                                return Some(JsonWeatherInfo{
+                                    api_type,
+                                    config,
+                                    json
+                                });
+                            },
+                            Err(_) => {
+                                println!("Provider response data error!");
+                            }
                         }
+                    },
+                    Err(_) => {
+                        println!("Provider request error!");
                     }
-                },
-                Err(_) => {
-                    println!("Provider request error!");
                 }
+            },
+            None => {
+                println!("Weather day must be less than 16 for this provider!");
             }
-        } else {
-            println!("Weather address must be present!");
-        }
+        };
         None
     }
 }

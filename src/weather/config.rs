@@ -100,7 +100,13 @@ impl Config {
                     None
                 } else {
                     match param.parse::<u64>() {
-                        Ok(res) => Some(res),
+                        Ok(res) => {
+                            if res < 24 {
+                                Some(res)
+                            } else {
+                                return Err(String::from("Argument 'hour' error, value must be 0-23 or 'now'"));
+                            }
+                        },
                         Err(_) => {
                             return Err(String::from("Argument 'hour' error, value must be unsigned number or 'now'"));
                         }
