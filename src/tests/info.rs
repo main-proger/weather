@@ -95,7 +95,7 @@ mod temp {
                 temp_type: TempType::parse(types[i]).unwrap(),
             };
             for j in 0..types.len() {
-                let to_temp = from_temp.to_type(&TempType::parse(types[j]).unwrap());
+                let to_temp = from_temp.convert_to(&TempType::parse(types[j]).unwrap());
                 assert_eq!(to_temp.temp_max, results[i][j])
             }
         }
@@ -172,7 +172,7 @@ mod speed {
                 speed_type: SpeedType::parse(types[i]).unwrap(),
             };
             for j in 0..types.len() {
-                let to_speed = from_speed.to_type(&SpeedType::parse(types[j]).unwrap());
+                let to_speed = from_speed.convert_to(&SpeedType::parse(types[j]).unwrap());
                 assert_eq!(to_speed.speed, results[i][j])
             }
         }

@@ -163,7 +163,7 @@ impl WeatherInfo for XmlWeatherInfo {
                 temp_max: temp,
                 temp_type: TempType::Celsius,
             }
-            .to_type(self.config.temp.as_ref().unwrap()),
+            .convert_to(self.config.temp.as_ref().unwrap()),
         )
     }
     fn feels_like(&self) -> Option<Temp> {
@@ -178,7 +178,7 @@ impl WeatherInfo for XmlWeatherInfo {
                 temp_max: feelslike_c,
                 temp_type: TempType::Celsius,
             }
-            .to_type(self.config.temp.as_ref().unwrap()),
+            .convert_to(self.config.temp.as_ref().unwrap()),
         )
     }
 
@@ -194,7 +194,7 @@ impl WeatherInfo for XmlWeatherInfo {
                 speed: speed_mps,
                 speed_type: SpeedType::Meter,
             }
-            .to_type(self.config.speed.as_ref().unwrap()),
+            .convert_to(self.config.speed.as_ref().unwrap()),
         )
     }
     fn wind_deg(&self) -> Option<f64> {
@@ -217,7 +217,7 @@ impl WeatherInfo for XmlWeatherInfo {
                 speed: gust_mps,
                 speed_type: SpeedType::Meter,
             }
-            .to_type(self.config.speed.as_ref().unwrap()),
+            .convert_to(self.config.speed.as_ref().unwrap()),
         )
     }
 

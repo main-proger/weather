@@ -162,7 +162,7 @@ impl WeatherInfo for JsonWeatherInfo {
                     temp_max: self.json["main"]["temp_max"].as_f64().unwrap(),
                     temp_type: TempType::Kelvin,
                 }
-                .to_type(self.config.temp.as_ref().unwrap()),
+                .convert_to(self.config.temp.as_ref().unwrap()),
             ),
             ApiType::Hourly => {
                 let info = self.find_info_for_date();
@@ -172,7 +172,7 @@ impl WeatherInfo for JsonWeatherInfo {
                         temp_max: info["main"]["temp_max"].as_f64().unwrap(),
                         temp_type: TempType::Kelvin,
                     }
-                    .to_type(self.config.temp.as_ref().unwrap()),
+                    .convert_to(self.config.temp.as_ref().unwrap()),
                 )
             }
             ApiType::Daily => {
@@ -183,7 +183,7 @@ impl WeatherInfo for JsonWeatherInfo {
                         temp_max: self.json["temp"]["max"].as_f64().unwrap(),
                         temp_type: TempType::Kelvin,
                     }
-                    .to_type(self.config.temp.as_ref().unwrap()),
+                    .convert_to(self.config.temp.as_ref().unwrap()),
                 )
             }
         }
@@ -198,7 +198,7 @@ impl WeatherInfo for JsonWeatherInfo {
                         temp_max: time,
                         temp_type: TempType::Kelvin,
                     }
-                    .to_type(self.config.temp.as_ref().unwrap()),
+                    .convert_to(self.config.temp.as_ref().unwrap()),
                 )
             }
             ApiType::Hourly => {
@@ -210,7 +210,7 @@ impl WeatherInfo for JsonWeatherInfo {
                         temp_max: time,
                         temp_type: TempType::Kelvin,
                     }
-                    .to_type(self.config.temp.as_ref().unwrap()),
+                    .convert_to(self.config.temp.as_ref().unwrap()),
                 )
             }
             ApiType::Daily => {
@@ -222,7 +222,7 @@ impl WeatherInfo for JsonWeatherInfo {
                         temp_max: time,
                         temp_type: TempType::Kelvin,
                     }
-                    .to_type(self.config.temp.as_ref().unwrap()),
+                    .convert_to(self.config.temp.as_ref().unwrap()),
                 )
             }
         }
@@ -235,7 +235,7 @@ impl WeatherInfo for JsonWeatherInfo {
                     speed: self.json["wind"]["speed"].as_f64().unwrap(),
                     speed_type: SpeedType::Meter,
                 }
-                .to_type(self.config.speed.as_ref().unwrap()),
+                .convert_to(self.config.speed.as_ref().unwrap()),
             ),
             ApiType::Hourly => {
                 let info = self.find_info_for_date();
@@ -244,7 +244,7 @@ impl WeatherInfo for JsonWeatherInfo {
                         speed: info["wind"]["speed"].as_f64().unwrap(),
                         speed_type: SpeedType::Meter,
                     }
-                    .to_type(self.config.speed.as_ref().unwrap()),
+                    .convert_to(self.config.speed.as_ref().unwrap()),
                 )
             }
             ApiType::Daily => {
@@ -254,7 +254,7 @@ impl WeatherInfo for JsonWeatherInfo {
                         speed: info["speed"].as_f64().unwrap(),
                         speed_type: SpeedType::Meter,
                     }
-                    .to_type(self.config.speed.as_ref().unwrap()),
+                    .convert_to(self.config.speed.as_ref().unwrap()),
                 )
             }
         }
@@ -279,7 +279,7 @@ impl WeatherInfo for JsonWeatherInfo {
                     speed: self.json["wind"]["gust"].as_f64().unwrap(),
                     speed_type: SpeedType::Meter,
                 }
-                .to_type(self.config.speed.as_ref().unwrap()),
+                .convert_to(self.config.speed.as_ref().unwrap()),
             ),
             ApiType::Hourly => {
                 let info = self.find_info_for_date();
@@ -288,7 +288,7 @@ impl WeatherInfo for JsonWeatherInfo {
                         speed: info["wind"]["gust"].as_f64().unwrap(),
                         speed_type: SpeedType::Meter,
                     }
-                    .to_type(self.config.speed.as_ref().unwrap()),
+                    .convert_to(self.config.speed.as_ref().unwrap()),
                 )
             }
             ApiType::Daily => {
@@ -298,7 +298,7 @@ impl WeatherInfo for JsonWeatherInfo {
                         speed: info["gust"].as_f64().unwrap(),
                         speed_type: SpeedType::Meter,
                     }
-                    .to_type(self.config.speed.as_ref().unwrap()),
+                    .convert_to(self.config.speed.as_ref().unwrap()),
                 )
             }
         }

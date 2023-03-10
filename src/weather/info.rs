@@ -153,7 +153,7 @@ impl Temp {
         }
     }
 
-    pub fn to_type(&self, temp: &TempType) -> Temp {
+    pub fn convert_to(&self, temp: &TempType) -> Temp {
         match temp {
             TempType::Fahrenheit => self.to_fahrenheit(),
             TempType::Celsius => self.to_celsius(),
@@ -194,7 +194,7 @@ impl Speed {
             speed_type: SpeedType::Miles,
         }
     }
-    pub fn to_type(&self, speed_type: &SpeedType) -> Speed {
+    pub fn convert_to(&self, speed_type: &SpeedType) -> Speed {
         match speed_type {
             SpeedType::Miles => self.to_miles(),
             SpeedType::Meter => self.to_meter(),
