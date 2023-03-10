@@ -90,3 +90,8 @@ weather get -date now -temp C
 # this command run with default config
 weather get -date now -temp C -provider WeatherApi -address "Country, City"
 ```
+
+### Run tests
+```shell
+cargo test -- --test-threads=1
+```
