@@ -1,13 +1,13 @@
 use std::fmt::Debug;
 
-use serde::{Serialize, Deserialize};
+use serde::{Deserialize, Serialize};
 
-use crate::utils::temp::{ftoc, ktoc, ftok, ctof, ktof};
+use crate::utils::temp::{ctof, ftoc, ftok, ktoc, ktof};
 
 pub trait WeatherInfo {
     fn temp(&self) -> Option<Temp>;
     fn feels_like(&self) -> Option<Temp>;
-    
+
     fn humidity(&self) -> Option<f64>;
     fn pressure(&self) -> Option<f64>;
 
@@ -52,19 +52,12 @@ pub struct Speed {
     pub speed_type: SpeedType,
 }
 
-
 impl ToString for TempType {
     fn to_string(&self) -> String {
         match self {
-            TempType::Fahrenheit => {
-                String::from("°F")
-            },
-            TempType::Kelvin => {
-                String::from("°K")
-            },
-            TempType::Celsius => {
-                String::from("°C")
-            },
+            TempType::Fahrenheit => String::from("°F"),
+            TempType::Kelvin => String::from("°K"),
+            TempType::Celsius => String::from("°C"),
         }
     }
 }
@@ -72,9 +65,18 @@ impl ToString for TempType {
 impl ToString for Temp {
     fn to_string(&self) -> String {
         if self.temp_max == self.temp_min {
-            format!("{:5} {}", (self.temp_max * 100f64).round() / 100f64, self.temp_type.to_string())
+            format!(
+                "{} {}",
+                (self.temp_max * 100f64).round() / 100f64,
+                self.temp_type.to_string()
+            )
         } else {
-            format!("[{:5} : {:5}] {}", (self.temp_min * 100f64).round() / 100f64, (self.temp_max * 100f64).round() / 100f64, self.temp_type.to_string())
+            format!(
+                "[{} : {}] {}",
+                (self.temp_min * 100f64).round() / 100f64,
+                (self.temp_max * 100f64).round() / 100f64,
+                self.temp_type.to_string()
+            )
         }
     }
 }
@@ -82,19 +84,19 @@ impl ToString for Temp {
 impl ToString for SpeedType {
     fn to_string(&self) -> String {
         match self {
-            SpeedType::Meter => {
-                String::from("meter/sec")
-            },
-            SpeedType::Miles => {
-                String::from("miles/hour")
-            },
+            SpeedType::Meter => String::from("meter/sec"),
+            SpeedType::Miles => String::from("miles/hour"),
         }
     }
 }
 
 impl ToString for Speed {
     fn to_string(&self) -> String {
-        format!("{} {}", (self.speed * 100000f64).round() / 100000f64, self.speed_type.to_string())
+        format!(
+            "{} {}",
+            (self.speed * 100000f64).round() / 100000f64,
+            self.speed_type.to_string()
+        )
     }
 }
 
@@ -116,7 +118,7 @@ impl Temp {
             TempType::Kelvin => (ktoc(self.temp_min), ktoc(self.temp_max)),
         };
 
-        Temp {
+        Self {
             temp_min: celsius.0,
             temp_max: celsius.1,
             temp_type: TempType::Celsius,
@@ -130,7 +132,7 @@ impl Temp {
             TempType::Kelvin => (self.temp_min, self.temp_max),
         };
 
-        Temp {
+        Self {
             temp_min: kelvin.0,
             temp_max: kelvin.1,
             temp_type: TempType::Kelvin,
@@ -144,7 +146,7 @@ impl Temp {
             TempType::Kelvin => (ktof(self.temp_min), ktof(self.temp_max)),
         };
 
-        Temp {
+        Self {
             temp_min: fahrenheit.0,
             temp_max: fahrenheit.1,
             temp_type: TempType::Fahrenheit,
@@ -172,25 +174,27 @@ impl TempType {
 }
 
 impl Speed {
-    pub fn to_meter(self) -> Self {
-        match self.speed_type {
-            SpeedType::Meter => self,
-            SpeedType::Miles => Self {
-                speed: self.speed / 3600f64 * 1609.34f64 ,
-                speed_type: SpeedType::Meter,
-            },
+    pub fn to_meter(&self) -> Self {
+        let speed = match self.speed_type {
+            SpeedType::Meter => self.speed,
+            SpeedType::Miles => self.speed / 3600f64 * 1609.34f64,
+        };
+        Self {
+            speed,
+            speed_type: SpeedType::Meter,
         }
     }
-    pub fn to_miles(self) -> Self {
-        match self.speed_type {
-            SpeedType::Miles => self,
-            SpeedType::Meter => Self {
-                speed: self.speed * 3600f64 / 1609.34f64,
-                speed_type: SpeedType::Miles,
-            },
+    pub fn to_miles(&self) -> Self {
+        let speed = match self.speed_type {
+            SpeedType::Miles => self.speed,
+            SpeedType::Meter => self.speed * 3600f64 / 1609.34f64,
+        };
+        Self {
+            speed,
+            speed_type: SpeedType::Miles,
         }
     }
-    pub fn to_type(self, speed_type: &SpeedType) -> Speed {
+    pub fn to_type(&self, speed_type: &SpeedType) -> Speed {
         match speed_type {
             SpeedType::Miles => self.to_miles(),
             SpeedType::Meter => self.to_meter(),
@@ -219,13 +223,13 @@ impl Date {
                 Ok(res) => res,
                 Err(_) => {
                     return None;
-                },
+                }
             };
             let hours = match arr[1].parse::<u64>() {
                 Ok(res) => res,
                 Err(_) => {
                     return None;
-                },
+                }
             };
             if hours >= 24 {
                 return None;

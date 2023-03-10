@@ -6,8 +6,10 @@ use std::env;
 pub mod utils;
 pub mod weather;
 
-use weather::provider::view_weather_info;
 use crate::weather::config::Config;
+use weather::provider::view_weather_info;
+
+mod tests;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -39,22 +41,22 @@ Configuration:
     -address <address> - weather address
     -speed [meter, miles] - wind speed type, default meter
     -temp [C, F, K] - temperature type (Fahrenheit, Celsius, Kelvin), default Celsius");
-            },
+            }
             "save" => {
                 Config::parse_args(args).save();
-            },
+            }
             "get" => {
                 let config = Config::parse_args(args);
                 view_weather_info(config);
-            },
+            }
             "providers" => {
                 println!("Weather providers:");
                 println!("  OpenWeather");
                 println!("  WeatherApi");
-            },
+            }
             _ => {
                 println!("Unknown comand {}", args[1]);
-            },
+            }
         }
     } else {
         println!("Arguments count error");

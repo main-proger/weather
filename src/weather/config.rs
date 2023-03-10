@@ -1,7 +1,10 @@
-use serde::{Serialize, Deserialize, de::DeserializeOwned};
-use std::{fs::File, io::Write, io::Read};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use std::{fs::File, io::Read, io::Write};
 
-use super::{info::{TempType, SpeedType, Date}, provider::ProviderType};
+use super::{
+    info::{Date, SpeedType, TempType},
+    provider::ProviderType,
+};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Config {
@@ -44,18 +47,16 @@ impl Default for Config {
                 }
 
                 config
-            },
-            Err(_) => {
-                Config {
-                    date: Some(Date {
-                        day: 0,
-                        hours: None,
-                    }),
-                    address: None,
-                    temp: Some(TempType::Celsius),
-                    speed: Some(SpeedType::Meter),
-                    provider: Some(ProviderType::OpenWeather),
-                }
+            }
+            Err(_) => Config {
+                date: Some(Date {
+                    day: 0,
+                    hours: None,
+                }),
+                address: None,
+                temp: Some(TempType::Celsius),
+                speed: Some(SpeedType::Meter),
+                provider: Some(ProviderType::OpenWeather),
             },
         }
     }
@@ -74,11 +75,13 @@ impl Config {
                     match Date::parse(&param) {
                         Some(res) => Some(res),
                         None => {
-                            return Err(String::from("Argument 'date' error, value format must be \"DAY, HOUR\""));
+                            return Err(String::from(
+                                "Argument 'date' error, value format must be \"DAY, HOUR\"",
+                            ));
                         }
                     }
                 }
-            },
+            }
             "-day" => {
                 let day = if param == "now" {
                     0
@@ -86,7 +89,9 @@ impl Config {
                     match param.parse::<u64>() {
                         Ok(res) => res,
                         Err(_) => {
-                            return Err(String::from("Argument 'day' error, value must be unsigned number or 'now'"));
+                            return Err(String::from(
+                                "Argument 'day' error, value must be unsigned number or 'now'",
+                            ));
                         }
                     }
                 };
@@ -94,7 +99,7 @@ impl Config {
                     day,
                     hours: self.date.as_ref().unwrap().hours,
                 });
-            },
+            }
             "-hour" => {
                 let hour = if param == "now" {
                     None
@@ -104,11 +109,15 @@ impl Config {
                             if res < 24 {
                                 Some(res)
                             } else {
-                                return Err(String::from("Argument 'hour' error, value must be 0-23 or 'now'"));
+                                return Err(String::from(
+                                    "Argument 'hour' error, value must be 0-23 or 'now'",
+                                ));
                             }
-                        },
+                        }
                         Err(_) => {
-                            return Err(String::from("Argument 'hour' error, value must be unsigned number or 'now'"));
+                            return Err(String::from(
+                                "Argument 'hour' error, value must be unsigned number or 'now'",
+                            ));
                         }
                     }
                 };
@@ -116,34 +125,40 @@ impl Config {
                     day: self.date.as_ref().unwrap().day,
                     hours: hour,
                 });
-            },
+            }
             "-address" => {
                 self.address = Some(param);
-            },
+            }
             "-temp" => {
                 self.temp = match TempType::parse(&param) {
                     Some(res) => Some(res),
                     None => {
-                        return Err(String::from("Argument 'temp' error, value must be (F, K, C)"));
-                    },
+                        return Err(String::from(
+                            "Argument 'temp' error, value must be (F, K, C)",
+                        ));
+                    }
                 };
-            },
+            }
             "-speed" => {
                 self.speed = match SpeedType::parse(&param) {
                     Some(res) => Some(res),
                     None => {
-                        return Err(String::from("Argument 'speed' error, value must be (meter, miles)"));
-                    },
+                        return Err(String::from(
+                            "Argument 'speed' error, value must be (meter, miles)",
+                        ));
+                    }
                 };
-            },
+            }
             "-provider" => {
                 self.provider = match ProviderType::parse(&param) {
                     Some(res) => Some(res),
                     None => {
-                        return Err(String::from("Argument 'provider' error, value must be (OpenWeather)"));
-                    },
+                        return Err(String::from(
+                            "Argument 'provider' error, value must be (OpenWeather, WeatherApi)",
+                        ));
+                    }
                 };
-            },
+            }
             _ => {
                 return Err(format!("Unknown argument '{name}'"));
             }
@@ -153,23 +168,23 @@ impl Config {
 
     pub fn parse_args(args: Vec<String>) -> Self {
         let args = args.split_at(2).1;
-    
+
         if args.len() % 2 != 0 {
             println!("args error");
         }
-        
+
         let mut i = 0;
-    
+
         let mut config = Config::default();
-    
+
         while i < args.len() {
             let key = args[i].clone();
             let value = args[i + 1].clone();
-    
+
             if let Err(err) = config.set_param(key, value) {
                 println!("{err}");
             }
-    
+
             i += 2;
         }
 
@@ -181,19 +196,19 @@ impl Config {
             match err {
                 Error::CreateFile => {
                     println!("Create config file error");
-                },
+                }
                 Error::WriteFile => {
                     println!("Save config to file error");
-                },
-                _ => {},
+                }
+                _ => {}
             }
         }
-    } 
+    }
 }
 
 fn save_json<J>(name: &str, json: &J) -> Result<(), Error>
-    where
-    J: Serialize
+where
+    J: Serialize,
 {
     let data = match serde_json::to_string(json) {
         Ok(res) => res,
@@ -215,8 +230,8 @@ fn save_json<J>(name: &str, json: &J) -> Result<(), Error>
 }
 
 fn read_json<J>(name: &str) -> Result<J, Error>
-    where
-    J: DeserializeOwned
+where
+    J: DeserializeOwned,
 {
     let mut data: Vec<u8> = vec![];
 
@@ -224,7 +239,7 @@ fn read_json<J>(name: &str) -> Result<J, Error>
         Ok(file) => file,
         Err(_) => {
             return Err(Error::OpenFile);
-        },
+        }
     };
     if file.read_to_end(&mut data).is_err() {
         return Err(Error::ReadFile);
