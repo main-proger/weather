@@ -80,8 +80,11 @@ impl Provider<JsonWeatherInfo> for OpenWeatherProvider {
                 match reqwest::blocking::get(url) {
                     Ok(res) => {
                         if res.status() == 401 {
-                            println!("Provider response error: Api key or url error!");
                             println!("Api key is payment!");
+                            return None;
+                        }
+                        if res.status() != 200 {
+                            println!("Provider response error: Api key or url error!");
                             return None;
                         }
                         match res.json::<serde_json::Value>() {
